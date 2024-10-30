@@ -1,6 +1,9 @@
+from utils import ensure_dir_exists
 from PIL import Image
 import numpy as np
 import gzip
+import sys
+import os
 
 
 def read_img_to_array(path: str) -> np.ndarray:
@@ -16,39 +19,40 @@ def save_img_array(img: np.ndarray, path: str):
 def steganography_encode(img: np.ndarray, msg: bytes) -> np.ndarray:
   original_shape = img.shape
   img = img.flatten()
-
-  # Compress the message using gzip
+  
   compressed_msg = gzip.compress(msg)
 
-  # Decide whether to use compressed message or original message
+  print(f'image is large enough for {img.size - 64:,} bytes of data')
+  print(f'original message size: {len(msg):,} bytes')
+  print(f'compressed message size: {len(compressed_msg):,} bytes')
+
   if len(compressed_msg) < len(msg):
-    use_compression = True
+    print(f"using compression (it results in fewer bytes)")
+    using_gzip = True
     data_to_encode = compressed_msg
   else:
-    use_compression = False
+    print(f"skipping compression (it doesn't shrink the payload)")
+    using_gzip = False
     data_to_encode = msg
 
-  # Build the bits list to encode
   bits = []
 
-  # First bit: compression flag
-  bits.append(int(use_compression))
+  # first bit: compression flag
+  bits.append(int(using_gzip))
 
-  # Next 63 bits: message length in bytes
+  # next 63 bits: message length in bytes
   msg_length = len(data_to_encode)
   msg_length_bits = bin(msg_length)[2:].zfill(63)
   bits.extend([int(b) for b in msg_length_bits])
 
-  # Message data bits
+  # rest of the bits: actual payload
   for byte in data_to_encode:
     byte_bits = bin(byte)[2:].zfill(8)
     bits.extend([int(b) for b in byte_bits])
 
-  # Check if the message is too long to encode in the image
   if len(bits) > img.size:
-    raise ValueError('Message is too long for this image')
+    raise ValueError('message is too long for this image')
 
-  # Encode the bits into the image
   for bit_index, bit in enumerate(bits):
     img[bit_index] = (img[bit_index] & 0b11111110) | bit
 
@@ -60,11 +64,11 @@ def steganography_decode(img: np.ndarray) -> bytes:
 
   bit_index = 0
 
-  # Read the first bit: compression flag
-  use_compression = img[bit_index] & 1
+  # read the first bit: compression flag
+  using_gzip = img[bit_index] & 1
   bit_index += 1
 
-  # Next 63 bits: message length in bytes
+  # next 63 bits: message length in bytes
   msg_length_bits = []
   for _ in range(63):
     bit = img[bit_index] & 1
@@ -72,14 +76,14 @@ def steganography_decode(img: np.ndarray) -> bytes:
     bit_index += 1
   msg_length = int(''.join(msg_length_bits), 2)
 
-  # Extract the message bits
+  # extract the payload bits
   msg_bits = []
   for _ in range(msg_length * 8):
     bit = img[bit_index] & 1
     msg_bits.append(str(bit))
     bit_index += 1
 
-  # Convert bits to bytes
+  # convert bits to bytes
   msg_bytes = bytearray()
   for i in range(0, len(msg_bits), 8):
     byte_bits = ''.join(msg_bits[i:i+8])
@@ -87,33 +91,67 @@ def steganography_decode(img: np.ndarray) -> bytes:
     msg_bytes.append(byte)
 
   msg_data = bytes(msg_bytes)
-
-  # If compression was used, decompress the message
-  if use_compression:
-    msg = gzip.decompress(msg_data)
-  else:
-    msg = msg_data
+  msg = gzip.decompress(msg_data) if using_gzip else msg_data
 
   return msg
 
 
-def test():
-  img = read_img_to_array('assets/cat.png')
-  
-  with open('assets/dummy_info.json', 'rb') as f:
-    message = f.read()
-  
-  encoded_img = steganography_encode(img, message)
-  save_img_array(encoded_img, 'assets/cat_encoded.png')
-  
-  print('Encoded image saved to assets/cat_encoded.png')
+def get_path_from_user(prompt: str, default: str, ensure_exists=False) -> str:
+  res = input(f'{prompt} [{default}]? ')
+  res = res.strip().strip('"').strip("'")
+  if not res:
+    res = default
+  if ensure_exists and not os.path.exists(res):
+    print(f'path does not exist: {res}')
+    exit(1)
+  return res
 
-  decoded_img = read_img_to_array('assets/cat_encoded.png')
-  decoded_message = steganography_decode(decoded_img)
-  assert decoded_message == message
+
+def encode():
+  input_msg_path = 'assets/dummy_info.json'
+  input_img_path = 'assets/cat.png'
+  output_img_path = 'output/cat_with_data.png'
   
-  print('Decoded message matches the original message')
+  input_msg_path = get_path_from_user('input data path', input_msg_path, ensure_exists=True)
+  input_img_path = get_path_from_user('input image path', input_img_path, ensure_exists=True)
+  output_img_path = get_path_from_user('output image path', output_img_path)
+  
+  img = read_img_to_array(input_img_path)
+  msg = open(input_msg_path, 'rb').read()
+  
+  ensure_dir_exists(output_img_path)
+  img = steganography_encode(img, msg)
+  save_img_array(img, output_img_path)
+  
+  print('encoded image saved to', output_img_path)
+
+
+def decode():
+  input_img_path = 'output/cat_with_data.png'
+  output_msg_path = 'output/decoded_info.json'
+  
+  input_img_path = get_path_from_user('input image path', input_img_path, ensure_exists=True)
+  output_msg_path = get_path_from_user('output message path', output_msg_path)
+  
+  img = read_img_to_array(input_img_path)
+  msg = steganography_decode(img)
+  
+  ensure_dir_exists(output_msg_path)
+  with open(output_msg_path, 'wb') as f:
+    f.write(msg)
+  
+  print('decoded message saved to', output_msg_path)
+
+
+def main():
+  if len(sys.argv) != 2 or sys.argv[1] not in ('encode', 'decode'):
+    print(f'usage: py {sys.argv[0]} <encode|decode>')
+    exit(1)
+  
+  match sys.argv[1]:
+    case 'encode': encode()
+    case 'decode': decode()
 
 
 if __name__ == '__main__':
-  test()
+  main()
