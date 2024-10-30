@@ -1,4 +1,4 @@
-from utils import rm_rf
+from utils import rm_dir_if_exists
 from sys import executable as py
 from subprocess import Popen, PIPE
 
@@ -27,4 +27,4 @@ try:
 
 finally:
   # cleanup
-  rm_rf('output/.tests')
+  rm_dir_if_exists('output/.tests')
