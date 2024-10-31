@@ -1,6 +1,8 @@
+from input_with_default import input_with_default
 from utils import ensure_dir_exists, colors
 from PIL import Image
 import numpy as np
+import questionary
 import gzip
 import sys
 import os
@@ -99,12 +101,12 @@ def steganography_decode(img: np.ndarray) -> bytes:
 
 
 def get_path_from_user(prompt: str, default: str, ensure_exists=False) -> str:
-  res = input(f'{prompt} [{default}]? ')
+  res = input_with_default(prompt + ": ", default)
   res = res.strip().strip('"').strip("'")
   if not res:
     res = default
   if ensure_exists and not os.path.exists(res):
-    print(f'path does not exist: {res}')
+    print(colors.red + 'path does not exist:', res + colors.reset)
     exit(1)
   return res
 
