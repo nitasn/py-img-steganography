@@ -5,4 +5,6 @@
 
 Uses `gzip` if it makes the payload smaller.
 
-![Terminal ScreenShot](github-assets/terminal-screenshot.png)
+![Encode ScreenShot](github-assets/encode-screenshot.png)
+
+![Decode ScreenShot](github-assets/decode-screenshot.png)
