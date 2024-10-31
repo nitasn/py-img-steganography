@@ -29,7 +29,7 @@ def input_with_default(prompt, default):
   """Displays a prompt with a default value in gray.
   When the user starts typing, the default disappears."""
   prompt = f"{prompt} "
-  
+
   if not sys.stdin.isatty() or not sys.stdout.isatty():
     # Not connected to a terminal, fall back to standard input
     res = input(f"{prompt}[{default}] ")
@@ -37,7 +37,7 @@ def input_with_default(prompt, default):
       return default
     else:
       return res
-          
+  
   sys.stdout.write(f"{prompt}{colors.gray}{default}{colors.reset}")
   sys.stdout.flush()
   input_chars = []

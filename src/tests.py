@@ -8,13 +8,13 @@ def assert_no_error(returncode, err):
   
   if returncode == 0 and err_text == '':
     return
-    
+  
   if err_text:
     print(err_text)
-    
+  
   if returncode != 0:
     print(colors.red + 'error:', colors.bold + 'process exited with code', returncode, colors.reset)
-    
+  
   print(colors.red + 'tests failed :(' + colors.reset)
   exit(1)
 
