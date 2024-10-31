@@ -2,7 +2,6 @@ from input_with_default import input_with_default
 from utils import ensure_dir_exists, colors
 from PIL import Image
 import numpy as np
-import questionary
 import gzip
 import sys
 import os
@@ -101,10 +100,10 @@ def steganography_decode(img: np.ndarray) -> bytes:
 
 
 def get_path_from_user(prompt: str, default: str, ensure_exists=False) -> str:
-  res = input_with_default(prompt + ": ", default)
+  res = input_with_default(prompt, default)
   res = res.strip().strip('"').strip("'")
-  if ensure_exists and not os.path.exists(res):
-    print(colors.red + 'path does not exist:', colors.bold + res + colors.reset)
+  if ensure_exists and not os.path.isfile(res):
+    print(colors.red + 'no such file:', colors.bold + res + colors.reset)
     exit(1)
   return res
 
@@ -114,9 +113,9 @@ def encode():
   input_img_path = 'assets/cat.png'
   output_img_path = 'output/cat_with_data.png'
   
-  input_msg_path = get_path_from_user('input data path', input_msg_path, ensure_exists=True)
-  input_img_path = get_path_from_user('input image path', input_img_path, ensure_exists=True)
-  output_img_path = get_path_from_user('output image path', output_img_path)
+  input_msg_path = get_path_from_user('input data path?', input_msg_path, ensure_exists=True)
+  input_img_path = get_path_from_user('input image path?', input_img_path, ensure_exists=True)
+  output_img_path = get_path_from_user('output image path?', output_img_path)
   
   img = read_img_to_array(input_img_path)
   msg = open(input_msg_path, 'rb').read()
@@ -125,7 +124,7 @@ def encode():
   img = steganography_encode(img, msg)
   save_img_array(img, output_img_path)
   
-  print('encoded image saved to', colors.bold + output_img_path + colors.reset)
+  print('encoded image saved to:', colors.bold + output_img_path + colors.reset)
 
 
 def decode():
@@ -142,7 +141,7 @@ def decode():
   with open(output_msg_path, 'wb') as f:
     f.write(msg)
   
-  print('decoded message saved to', colors.bold + output_msg_path + colors.reset)
+  print('decoded message saved to:', colors.bold + output_msg_path + colors.reset)
 
 
 def main():

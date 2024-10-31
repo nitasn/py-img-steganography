@@ -28,6 +28,16 @@ def getch():
 def input_with_default(prompt, default):
   """Displays a prompt with a default value in gray.
   When the user starts typing, the default disappears."""
+  prompt = f"{prompt} "
+  
+  if not sys.stdin.isatty() or not sys.stdout.isatty():
+    # Not connected to a terminal, fall back to standard input
+    res = input(f"{prompt}[{default}] ")
+    if res == '':
+      return default
+    else:
+      return res
+          
   sys.stdout.write(f"{prompt}{colors.gray}{default}{colors.reset}")
   sys.stdout.flush()
   input_chars = []
@@ -59,7 +69,7 @@ def input_with_default(prompt, default):
         sys.stdout.flush()
         default_displayed = False
         input_chars.append(ch)
-        sys.stdout.write(colors.bold + colors.gray)
+        sys.stdout.write(colors.bold)
         sys.stdout.write(ch)
         sys.stdout.flush()
       else:
