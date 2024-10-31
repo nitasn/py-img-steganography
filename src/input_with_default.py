@@ -58,6 +58,17 @@ def input_with_default(prompt, default):
           # Move cursor back, overwrite the character with space, move back again
           sys.stdout.write('\b \b')
           sys.stdout.flush()
+        elif default_displayed:
+          # Clear the default text
+          num_chars = len(default)
+          sys.stdout.write('\r')  # Move cursor to the beginning
+          sys.stdout.write(' ' * (len(prompt) + num_chars))  # Overwrite with spaces
+          sys.stdout.write('\r')  # Move cursor back again
+          sys.stdout.write(prompt)  # Reprint prompt
+          sys.stdout.flush()
+          default_displayed = False
+          sys.stdout.write(colors.bold)
+          sys.stdout.flush()
       # If this is the first character typed
       elif default_displayed:
         # Clear the default text
