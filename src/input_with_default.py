@@ -59,7 +59,7 @@ def input_with_default(prompt, default):
         sys.stdout.flush()
         default_displayed = False
         input_chars.append(ch)
-        sys.stdout.write(colors.yellow)
+        sys.stdout.write(colors.bold + colors.gray)
         sys.stdout.write(ch)
         sys.stdout.flush()
       else:

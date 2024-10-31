@@ -103,10 +103,8 @@ def steganography_decode(img: np.ndarray) -> bytes:
 def get_path_from_user(prompt: str, default: str, ensure_exists=False) -> str:
   res = input_with_default(prompt + ": ", default)
   res = res.strip().strip('"').strip("'")
-  if not res:
-    res = default
   if ensure_exists and not os.path.exists(res):
-    print(colors.red + 'path does not exist:', res + colors.reset)
+    print(colors.red + 'path does not exist:', colors.bold + res + colors.reset)
     exit(1)
   return res
 
