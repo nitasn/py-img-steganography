@@ -131,8 +131,8 @@ def decode():
   input_img_path = 'output/cat_with_data.png'
   output_msg_path = 'output/decoded_info.json'
   
-  input_img_path = get_path_from_user('input image path', input_img_path, ensure_exists=True)
-  output_msg_path = get_path_from_user('output message path', output_msg_path)
+  input_img_path = get_path_from_user('input image path?', input_img_path, ensure_exists=True)
+  output_msg_path = get_path_from_user('output message path?', output_msg_path)
   
   img = read_img_to_array(input_img_path)
   msg = steganography_decode(img)
