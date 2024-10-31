@@ -1,4 +1,4 @@
-from utils import ensure_dir_exists
+from utils import ensure_dir_exists, colors
 from PIL import Image
 import numpy as np
 import gzip
@@ -22,6 +22,7 @@ def steganography_encode(img: np.ndarray, msg: bytes) -> np.ndarray:
   
   compressed_msg = gzip.compress(msg)
 
+  print(colors.gray, end='')
   print(f'image is large enough for {img.size - 64:,} bytes of data')
   print(f'original message size: {len(msg):,} bytes')
   print(f'compressed message size: {len(compressed_msg):,} bytes')
@@ -34,7 +35,8 @@ def steganography_encode(img: np.ndarray, msg: bytes) -> np.ndarray:
     print(f"skipping compression (it doesn't shrink the payload)")
     using_gzip = False
     data_to_encode = msg
-
+  
+  print(colors.reset, end='')
   bits = []
 
   # first bit: compression flag
@@ -123,7 +125,7 @@ def encode():
   img = steganography_encode(img, msg)
   save_img_array(img, output_img_path)
   
-  print('encoded image saved to', output_img_path)
+  print('encoded image saved to', colors.bold + output_img_path + colors.reset)
 
 
 def decode():
@@ -140,7 +142,7 @@ def decode():
   with open(output_msg_path, 'wb') as f:
     f.write(msg)
   
-  print('decoded message saved to', output_msg_path)
+  print('decoded message saved to', colors.bold + output_msg_path + colors.reset)
 
 
 def main():
